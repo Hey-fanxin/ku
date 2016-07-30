@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bianjunping.com</title>
+    <style>
+        *{margin:0;padding:0;list-style:none;}
+        img{width:100%;}
+        body{background: #d3fbff;}
+        div{width:500px;height:100px;margin:0 auto;font-size:40px;text-align:center;line-height:100px;color: #222458;}
+        .box{width:745px;margin:0 auto;overflow:hidden;}
+        .box li{background:#0efac3;width:745px;}
+        .box .red{background: #c0ffff;}
+        .back{position:absolute;right:100px;top:50px;font-size:20px;color: #0b02ff;width:100px;}
+    </style>
+
+</head>
+<body>
+<a href="bianjunping.html" class="back">返回首页</a>
+<div>
+    查看详情，需查看源码！
+</div>
+<ul class="box">
+    <br/>
+    <h2>jQuery封装</h2>
+    <br/>
+    <li><img src="../jt/img2/ku-2.png" alt=""></li><br/>
+    <li><img src="../jt/img2/ku-1.png" alt=""></li><br/>
+    <li><img src="../jt/img2/ku-3.png" alt=""></li><br/>
+    <br/>
+    <h2>jsonp封装</h2>
+    <br/>
+    <li class="red"><img src="../jt/img2/ku-4.png" alt=""></li>
+</ul>
+<script>
+    'use strict';
+    function zQuery(arg){
+        this.elements=[];
+        this.domString='';
+        switch(typeof arg){
+            case 'function':
+                domReady(arg);
+                break;
+            case 'string':
+                if(arg.indexOf('>')!=-1){
+                    this.domString=arg;
+                }else{
+                    this.elements=getEle(arg);
+                }
+                break;
+            default:
+                if(arg instanceof  Array){
+                    this.elements=this.elements.concat(arg);
+                }else{
+                    this.elements.push(arg);
+                }
+                break;
+        }
+    }
+    zQuery.prototype.css=function(name,value){
+        if(arguments.length==2){
+            for(var i=0; i<this.elements.length; i++){
+                this.elements[i].style[name]=value;
+            }
+        }else{
+            if(typeof name=='string'){
+                return getStyle(this.elements[0],name);
+            }else{
+                var json=name;
+                for(var name in json){
+                    for(var i=0; i<this.elements.length; i++){
+                        this.elements[i].style[name]=json[name];
+                    }
+                }
+            }
+        }
+    };
+
+    zQuery.prototype.html=function(str){
+        if(str || str==''){
+            for(var i=0; i<this.elements.length; i++){
+                this.elements[i].innerHTML=str;
+            }
+        }else{
+            return this.elements[0].innerHTML;
+        }
+    };
+    zQuery.prototype.val=function(str){
+        if(str || str==''){
+            for(var i=0; i<this.elements.length; i++){
+                this.elements[i].value=str;
+            }
+        }else{
+            return this.elements[0].value;
+        }
+    };
+    zQuery.prototype.attr=function(name,value){
+        if(arguments.length==2){
+            for(var i=0; i<this.elements.length; i++){
+                this.elements[i].setAttribute(name,value);
+            }
+        }else{
+            if(typeof name=='string'){
+                return this.elements[0].getAttribute(name);
+            }else{
+                var json=name;
+                for(var name in json){
+                    for(var i=0; i<this.elements.length; i++){
+                        this.elements[i].setAttribute(name,json[name])
+                    }
+                }
+
+            }
+        }
+    };
+    ;'click mouseover mouseuout mousedown mousemove mouseup deydown keyup load resize focus blur mouseenter mouseleave'.replace(/\w+/g,function(sEv){
+        zQuery.prototype[sEv]=function(fn){
+            for(var i=0; i<this.elements.length; i++){
+                addEvent(this.elements[i],sEv,fn)
+            }
+        };
+    });
+    zQuery.prototype.hover=function(fnOver,fnOut){
+        this.mouseenter(fnOver);
+        this.mouseleave(fnOut)
+    };
+    zQuery.prototype.toggle=function(){
+        var args=arguments;
+        var _this=this;
+        for(var i=0; i<this.elements.length; i++){
+            (function(count){
+                addEvent(_this.elements[i],'click',function(){
+                    var fn=args[count%args.length];
+                    fn && fn.apply(this,arguments);
+                    count++
+                })
+            })(0)
+        }
+    };
+    zQuery.prototype.bind=function(sEv,fn){
+        for(var i=0; i<this.elements.length; i++){
+            addEvent(this.elements[i],sEv,fn)
+        }
+    };
+    zQuery.prototype.appentdTo=function(str){
+        var aParent=getEle(str);
+        for(var i=0; i<aParent.length; i++){
+            aParent[i].insertAdjacentHTML('beforeEnd',this.domString)
+        }
+    };
+    zQuery.prototype.prependTo=function(str){
+        var aParent=getEle(str);
+        for(var i=0; i<aParent.length; i++){
+            aParent[i].insertAdjacentHTML('afterBegin',this.domString)
+        }
+    };
+    zQuery.prototype.insertBefore=function(str){
+        var aParent=getEle(str);
+        for(var i=0; i<aParent.length; i++){
+            aParent[i].insertAdjacentHTML('beforeBegin',this.domString)
+        }
+    };
+    zQuery.prototype.insertAfter=function(str){
+        var aParent=getEle(str);
+        for(var i=0; i<aParent.length; i++){
+            aParent[i].insertAdjacentHTML('afterEnd',this.domString)
+        }
+    };
+    zQuery.prototype.remove=function(){
+        for(var i=0; i<this.elements.length; i++){
+            this.elements[i].parentNode.removeChild(this.elements[i])
+        }
+    };
+    zQuery.prototype.get=function(n){
+        return this.elements[n];
+    };
+    zQuery.prototype.eq=function(n){
+        return $(this.elements[n]);
+    };
+
+    zQuery.prototype.index=function(){
+        var obj=this.elemenst[this.elements.length-1];
+        var aSibling=obj.parentNode.children;
+        for(var i=0; i<aSibling.length; i++){
+            if(obj==aSibling){
+                return i;
+            }
+        }
+    };
+    zQuery.prototype.addClass=function(sClass){
+        for(var i=0; i<this.elements.length; i++){
+            var reg=new RegExp('\\b'+sClass+'\\b');
+            if(this.elements[i].className){
+                if(!reg.test(this.elements[i].className)){
+                    this.elements[i].className=' '+sClass;
+                }
+            }else{
+                this.elements[i].className=sClass;
+            }
+        }
+    };
+    // show hide
+    zQuery.prototype.show=function(){
+        for(var i=0; i<this.elements.length; i++){
+            this.elements[i].style.display='block';
+        }
+    };
+    zQuery.prototype.hide=function(){
+        for(var i=0; i<this.elements.length; i++){
+            this.elements[i].style.display='none';
+        }
+    };
+    zQuery.prototype.removeClass=function(sClass){
+        var reg=new RegExp('\\b'+sClass+'\\b','g');
+        for(var i=0; i<this.elements.length; i++){
+            if(reg.test(this.elements[i].className)){
+                this.elements[i].className=this.elements[i].className.replace(reg,'').replace(/^\s+|\s+$/g,'').replace(/\s+/,' ')
+            }
+        }
+    };
+    zQuery.prototype.animate=function(json,options){
+        for(var i=0; i<this.elements.length; i++){
+            move(this.elements[i],json,options);
+        }
+    };
+    zQuery.prototype.find=function(str){
+        var aParent=this.elements;
+        var aChild=getEle(str,aParent);
+        return $(aChild)
+    };
+    $.ajax=zQuery.ajax=function(json){
+        ajax(json);
+    };
+    $.getScript=zQuery.getScript=function(json){
+        jsonp(json)
+    };
+
+    $.fn=zQuery.prototype;
+    zQuery.prototype.extend=function(json){
+        for(var name in json){
+            zQuery.prototype[name]=json[name];
+        }
+    };
+    zQuery.prototype.each=function(fn){
+        for(var i=0; i<this.elements.length; i++){
+            fn && fn.call(this.elements[i],i,this.elements[i]);
+        }
+    };
+    function $(arg){
+        return new zQuery(arg)
+    }
+    function domReady(fn){
+        if(document.addEventListener){
+            document.addEventListener('DOMContentLoaded',function(){
+                fn&&fn();
+            },false);
+        }else{
+            document.attachEvent('onreadystatechange',function(){
+                if(document.readyState=='complete'){
+                    fn&&fn();
+                }
+            });
+        }
+    }
+    function getStyle(obj,name){
+        return (obj.currentStyle||getComputedStyle(obj,false))[name]
+    }
+    function addEvent(obj,sEv,fn){
+        if(obj.addEventListener){
+            obj.addEventListener(sEv,function(ev){
+                var oEvent=ev||event;
+                if(fn.call(obj,oEvent)==false){
+                    oEvent.cancelBubble=true;
+                    oEvent.preventDefault();
+                }
+            },false)
+        }else{
+            obj.attachEvent('on'+sEv,function(ev){
+                var oEvent=ev||event;
+                if(fn.call(obj,oEvent)==false){
+                    oEvent.cancelBubble=true;
+                    return false;
+                }
+            });
+        }
+    }
+    function getByClass(oParent,sClass){
+        if(oParent.getElementsByClassName){
+            return oParent.getElementsByClassName(sClass)
+        }else{
+            var aEle=oParent.getElementsByTagName('*');
+            var arr=[];
+            var reg=new RegExp('\\b'+sClass+'\\b');
+            for(var i=0; i<aEle.length; i++){
+                if(reg.test(aEle[i].className)){
+                    arr.push(aEle[i])
+                }
+            }
+            return arr;
+        }
+    }
+    function getByStr(aParent, str){
+        var aChild=[];
+        for(var i=0; i<aParent.length; i++){
+            switch(str.charAt(0)){
+                case '#':
+                    var aEle=document.getElementById(str.substring(1));
+                    aChild.push(aEle);
+                    break;
+                case '.':
+                    var aEle=getByClass(aParent[i],str.substring(1));
+                    for(var j=0; j<aEle.length; j++){
+                        aChild.push(aEle[i])
+                    }
+                    break;
+                default:
+                    if(/^\w+\.\w+$/.test(str)){    //筛选选择器
+                        var aStr=str.split('.');
+                        var aEle=aParent[i].getElementsByTagName(aStr[0]);
+                        var reg=new RegExp('\\b'+aStr[1]+'\\b');
+                        for(var j=0; j<aEle.length; j++){
+                            if(reg.test(aEle[j].className)){
+                                aChild.push(aEle[j])
+                            }
+                        }
+                    }else if(/^\w+:\w+(\(\d+\))?$/.test(str)){    //  伪类选择器
+                        var aStr=str.split(/:|\(|\)/);
+                        var aEle=aParent[i].getElementsByTagName(aStr[0]);
+                        switch(aStr[1]){
+                            case 'first':
+                                aChild.push(aEle[0]);
+                                break;
+                            case 'last':
+                                aChild.push(aEle[aEle.length-1]);
+                                break;
+                            case 'eq':
+                                aChild.push(aEle[aStr[2]]);
+                                break;
+                            case 'odd':
+                                for(var j=1; j<aEle.length; j+=2){
+                                    aChild.push(aEle[j])
+                                }
+                                break;
+                            case 'even':
+                                for(var j=0; j<aEle.length; j+=2){
+                                    aChild.push(aEle[j])
+                                }
+                                break;
+                            case 'lt':
+                                for(var j=0; j<aStr[2]; j++){
+                                    aChild.push(aEle[j])
+                                }
+                                break;
+                            case 'gt':
+                                for(var j=aStr[2]; j<aEle.length; j++){
+                                    aChild.push(aEle[j])
+                                }
+                                break;
+                        }
+                    }else if(/^\w+\[\w+=\w+\]$/.test(str)){
+                        var aStr=str.split(/\[|\]|=/);
+                        var aEle=aParent[i].getElementsByTagName(aStr[0]);
+                        for(var j=0; j<aEle.length; j++){
+                            if(aEle[j].getAttribute(aStr[1])==aStr[2]){
+                                aChild.push(aEle[j]);
+                            }
+                        }
+                    }else{       //  标签选择器
+                        var aEle=aParent[i].getElementsByTagName(str);
+                        for(var j=0; j<aEle.length; j++){
+                            aChild.push(aEle[j])
+                        }
+                    }
+                    break;
+            }
+        }
+        return aChild;
+    }
+    function getEle(str,aParent){
+        var arr=str.replace(/^\s+|\s+$/g, '').split(/\s+/);
+        var aParent=aParent||[document];
+        var aChild=[];
+        for(var i=0; i<arr.length; i++){
+            aChild=getByStr(aParent,arr[i]);
+            aParent=aChild;
+        }
+        return aChild;
+    }
+    function move(obj, json, option){
+        var option=option || {};
+        option.duration=option.duration || 700;
+        option.easing=option.easing || 'ease-out';
+        var start={};
+        var dis={};
+        for(var name in json){
+            start[name]=parseFloat(getStyle(obj, name));
+            if(isNaN(start[name])){
+                switch(name){
+                    case 'marginTop':
+                        start[name]=obj.offsetTop;
+                        break;
+                    case 'marginLeft':
+                        start[name]=obj.offsetLeft;
+                        break;
+                    case 'opacity':
+                        start[name]=1;
+                        break;
+                    case 'left':
+                        start[name]=obj.offsetLeft;
+                        break;
+                    case 'top':
+                        start[name]=obj.offsetTop;
+                        break;
+                }
+            }
+            dis[name]=json[name]-start[name];
+        }
+        var count=Math.round(option.duration/30);
+        var n=0;
+        clearInterval(obj.timer);
+        obj.timer=setInterval(function(){
+            n++;
+            for(var name in json){
+                switch(option.easing){
+                    case 'linear':
+                        var a=n/count;
+                        var cur=start[name]+dis[name]*a;
+                        break;
+                    case 'ease-in':
+                        var a=n/count;
+                        var cur=start[name]+dis[name]*a*a*a;
+                        break;
+                    case 'ease-out':
+                        var a=1-n/count;
+                        var cur=start[name]+dis[name]*(1-a*a*a);
+                        break;
+                }
+                if(name=='opacity'){
+                    obj.style.opacity=cur;
+                    obj.style.filter='alpha(opacity:'+cur*100+')';
+                }else{
+                    obj.style[name]=cur+'px';
+                }
+            }
+            if(n==count){
+                clearInterval(obj.timer);
+                option.complete && option.complete();
+            }
+        }, 30);
+    };
+    function json2url(json){
+        json.t=Math.random();
+        var arr=[];
+        for(var name in json){
+            arr.push(name+'='+json[name]);
+        }
+        return arr.join('&')
+    }
+    function ajax(json){
+        var json=json ||{};
+        if(!json.url)return;
+        json.time=json.time||3000;
+        json.type=json.type||'get';
+        json.date=json.date||{};
+        if(window.XMLHttpRequest){
+            var oAjax=new XMLHttpRequest();
+        }else{
+            oAjax=new ActiveXObject('Microsoft.XMLHTTP')
+        }
+        switch(json.type.toLowerCase()){
+            case 'get':
+                oAjax.open('GET',json.url+'?'+json2url(json.date));
+                oAjax.send();
+                break;
+            case 'post':
+                oAjax.open('POST',json.url, true);
+                oAjax.setRequestHeader('Content-Type','application/x-www.form-urlencoded');
+                oAjax.send(json2url(json.date));
+                break;
+        }
+        oAjax.onreadystatechange=function(){
+            if(oAjax.readyState==4){
+                if((oAjax.status>=200&&oAjax.status<300)||oAjax.status==304){
+                    json.success && json.success(oAjax.responseText)
+                }
+            }else{
+                json.error && json.error(oAjax.status);
+                clearTimeout(timer)
+            }
+        };
+        var timer=setTimeout(function(){
+            alert('你网速太慢了');
+            oAjax.onreadystatechange=null;
+        },json.time)
+    }
+    //----------------jsonp---------------------------------------------------------------
+    function jsonp(json){
+        var json=json || {};
+        if(!json.url)return;
+        json.data=json.data || {};
+        json.cbName=json.cbName || 'cb';
+
+        var fnName='show'+Math.random();
+        fnName=fnName.replace('.', '');
+        window[fnName]=function(data){
+            json.success && json.success(data);
+            oHead.removeChild(oS);
+        };
+        json.data[json.cbName]=fnName;
+        var arr=[];
+        for(var name in json.data){
+            arr.push(name+'='+json.data[name]);
+        }
+        var str=arr.join('&');
+        var oS=document.createElement('script');
+        oS.src=json.url+'?'+str;
+        var oHead=document.getElementsByTagName('head')[0];
+        oHead.appendChild(oS);
+    }
+    $(function(){
+        // alert('你好 ！！！')
+    })
+</script>
+</body>
+</html>
